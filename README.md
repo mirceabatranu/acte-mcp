@@ -47,6 +47,10 @@ raport și în `acte_linkuri`, dar se descarcă manual.
 
 ## Instalare (pe calculatorul care e mereu pornit și vede Z:\)
 
+**Cu Claude Code:** cereți-i să urmeze [INSTALARE-CLAUDE.md](INSTALARE-CLAUDE.md). Face
+tot singur, mai puțin parolele de aplicație, pe care le introduceți dumneavoastră într-un
+terminal separat. Pașii de mai jos sunt pentru instalarea manuală.
+
 ### 1. Gmail: IMAP și parolă de aplicație (pe fiecare cont)
 
 1. Gmail → Setări → *Redirecționare și POP/IMAP* → **Activează IMAP**.

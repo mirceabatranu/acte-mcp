@@ -40,21 +40,62 @@ def _ask(prompt: str, default: str) -> str:
     return val or default
 
 
+TEST_SUFFIX = ("\\_test mail", " (test mail)")
+
+
+def _split(text: str) -> list[str]:
+    return [x.strip() for x in (text or "").split(",") if x.strip()]
+
+
 def cmd_configurare(args) -> int:
+    from datetime import date as _date
+
     cfg = config.load()
-    print(f"Configurare in {config.CONFIG_PATH} (Enter = pastreaza valoarea dintre paranteze)\n")
-    cfg["radacina"] = _ask("Radacina serverului (recomandat \\\\NAS\\share, sau Z:\\)", cfg["radacina"])
-    cfg["conturi"] = [c.strip() for c in _ask("Conturile Gmail, separate prin virgula", ", ".join(cfg["conturi"])).split(",")]
-    cfg["adrese_proprii"] = [a.strip() for a in _ask(
-        "Alte adrese ale cabinetului (nu identifica un client; la forward se cauta expeditorul original)",
-        ", ".join(a for a in cfg["adrese_proprii"] if a not in cfg["conturi"])).split(",") if a.strip()]
-    cfg["excel_clienti"] = _ask("Calea catre Clienti_Contabilitate.xlsx (gol = fara)", cfg["excel_clienti"] or "")
-    cfg["de_la"] = _ask("Descarca mesajele primite incepand cu (AAAA-LL-ZZ)", cfg["de_la"])
-    cfg["raport"]["catre"] = _ask("Raportul zilnic si alertele merg la", cfg["raport"]["catre"])
+    flags = [args.radacina, args.conturi, args.adrese_proprii, args.excel, args.de_la, args.raport_catre, args.mod_test]
+    if any(f is not None for f in flags):
+        # Fara intrebari (pentru instalarea facuta de un agent): se schimba doar ce e dat.
+        if args.radacina is not None:
+            cfg["radacina"] = args.radacina
+        if args.conturi is not None:
+            cfg["conturi"] = _split(args.conturi)
+        if args.adrese_proprii is not None:
+            cfg["adrese_proprii"] = _split(args.adrese_proprii)
+        if args.excel is not None:
+            cfg["excel_clienti"] = args.excel
+        if args.de_la is not None:
+            _date.fromisoformat(args.de_la)
+            cfg["de_la"] = args.de_la
+        if args.raport_catre is not None:
+            cfg["raport"]["catre"] = args.raport_catre
+    else:
+        print(f"Configurare in {config.CONFIG_PATH} (Enter = pastreaza valoarea dintre paranteze)\n")
+        cfg["radacina"] = _ask("Radacina serverului (recomandat \\\\NAS\\share, sau Z:\\)", cfg["radacina"])
+        cfg["conturi"] = _split(_ask("Conturile Gmail, separate prin virgula", ", ".join(cfg["conturi"])))
+        cfg["adrese_proprii"] = _split(_ask(
+            "Alte adrese ale cabinetului (nu identifica un client; la forward se cauta expeditorul original)",
+            ", ".join(a for a in cfg["adrese_proprii"] if a not in cfg["conturi"])))
+        cfg["excel_clienti"] = _ask("Calea catre Clienti_Contabilitate.xlsx (gol = fara)", cfg["excel_clienti"] or "")
+        cfg["de_la"] = _ask("Descarca mesajele primite incepand cu (AAAA-LL-ZZ)", cfg["de_la"])
+        cfg["raport"]["catre"] = _ask("Raportul zilnic si alertele merg la", cfg["raport"]["catre"])
+    if args.mod_test is not None:
+        # Mod test: actele aduse de acte-mcp stau separat de cele aduse de flow-ul vechi.
+        base_c = cfg["folder_client"].replace(TEST_SUFFIX[0], "")
+        base_n = cfg["folder_neclasificat"].replace(TEST_SUFFIX[1], "")
+        if args.mod_test == "da":
+            cfg["folder_client"] = base_c + TEST_SUFFIX[0]
+            first, _, rest = base_n.partition("\\")
+            cfg["folder_neclasificat"] = first + TEST_SUFFIX[1] + ("\\" + rest if rest else "")
+        else:
+            cfg["folder_client"] = base_c
+            cfg["folder_neclasificat"] = base_n
     user = {k: cfg[k] for k in ("radacina", "conturi", "excel_clienti", "de_la", "raport", "adrese_proprii",
                                 "mapare_manuala", "ignora_expeditori", "luna_minus", "folder_client",
                                 "folder_neclasificat", "folder_tehnic")}
-    print(f"\nSalvat: {config.save(user)}")
+    print(f"Salvat: {config.save(user)}")
+    shown = {k: user[k] for k in ("radacina", "conturi", "adrese_proprii", "excel_clienti", "de_la",
+                                  "folder_client", "folder_neclasificat")}
+    shown["raport_catre"] = user["raport"]["catre"]
+    print(json.dumps(shown, ensure_ascii=False, indent=2))
     print("Urmeaza: acte-mcp parola <email> pentru fiecare cont, apoi acte-mcp test")
     return 0
 
@@ -71,6 +112,16 @@ def cmd_parola(args) -> int:
     parole.save(args.email, value)
     print("Salvata in Windows Credential Manager.")
     return 0
+
+
+def cmd_parole_lipsa(args) -> int:
+    from . import parole
+
+    cfg = config.load()
+    missing = [c for c in cfg["conturi"] if not parole.has(c)]
+    for c in cfg["conturi"]:
+        print(f"{c}: {'LIPSESTE' if c in missing else 'salvata'}")
+    return 1 if missing or not cfg["conturi"] else 0
 
 
 def cmd_test(args) -> int:
@@ -189,7 +240,17 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="acte-mcp", description="Acte din Gmail pe serverul local + server MCP")
     parser.add_argument("--version", action="version", version=__version__)
     sub = parser.add_subparsers(dest="cmd")
-    sub.add_parser("configurare", help="creeaza / modifica configurarea").set_defaults(func=cmd_configurare)
+    p = sub.add_parser("configurare", help="creeaza / modifica configurarea (fara optiuni: intreaba)")
+    p.add_argument("--radacina", help="radacina serverului, ex. Z:\\ sau \\\\NAS\\share")
+    p.add_argument("--conturi", help="conturile Gmail, separate prin virgula")
+    p.add_argument("--adrese-proprii", help="alte adrese ale cabinetului, separate prin virgula")
+    p.add_argument("--excel", help="calea catre Clienti_Contabilitate.xlsx")
+    p.add_argument("--de-la", help="data de inceput AAAA-LL-ZZ")
+    p.add_argument("--raport-catre", help="adresa pentru raport si alerte")
+    p.add_argument("--mod-test", choices=["da", "nu"], help="da = actele se scriu separat, in subfoldere '_test mail'")
+    p.set_defaults(func=cmd_configurare)
+    p = sub.add_parser("parole-lipsa", help="arata conturile fara parola de aplicatie (cod 1 daca lipseste vreuna)")
+    p.set_defaults(func=cmd_parole_lipsa)
     p = sub.add_parser("parola", help="salveaza parola de aplicatie Gmail")
     p.add_argument("email")
     p.set_defaults(func=cmd_parola)
