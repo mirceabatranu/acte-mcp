@@ -34,7 +34,7 @@ Două lucruri într-un singur program:
 - La fiecare rulare se reiau și ultimele 3 zile: nu rămân goluri, iar dublurile se sar
   (după conținut, nu doar după nume).
 - Fișierele nu se suprascriu niciodată.
-- **Raport zilnic** pe mail (implicit la office@bilanzaudit.ro, după ora 7) cu o
+- **Raport zilnic** pe mail (la adresa aleasă la configurare, după ora 7) cu o
   **numărătoare de control**: „ieri: 37 de mesaje în Gmail, 37 procesate, 0 neprocesate”.
   Mai conține fișierele salvate pe clienți, ce e de verificat, linkurile Drive/WeTransfer
   de descărcat manual și erorile.
@@ -70,7 +70,7 @@ acte-mcp configurare
 
 Configurarea întreabă:
 - radăcina serverului (recomandat calea de rețea, de ex. `\\NAS\Public`, în loc de `Z:\`);
-- conturile Gmail;
+- conturile Gmail și celelalte adrese ale cabinetului (care nu identifică un client);
 - calea către Excelul de clienți (de ex. `G:\My Drive\...\Clienti_Contabilitate.xlsx`);
 - data de început;
 - adresa pentru raport.
@@ -79,8 +79,8 @@ Restul setărilor se schimbă în `%USERPROFILE%\.acte-mcp\config.json`: adrese 
 expeditori ignorați și `mapare_manuala` (adresă sau domeniu → folder, pentru excepții).
 
 ```powershell
-acte-mcp parola bilanzaudit@gmail.com
-acte-mcp parola officebbaaudit@gmail.com
+acte-mcp parola cont1@gmail.com
+acte-mcp parola cont2@gmail.com
 acte-mcp test
 ```
 

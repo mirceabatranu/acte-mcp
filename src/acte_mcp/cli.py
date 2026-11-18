@@ -45,6 +45,9 @@ def cmd_configurare(args) -> int:
     print(f"Configurare in {config.CONFIG_PATH} (Enter = pastreaza valoarea dintre paranteze)\n")
     cfg["radacina"] = _ask("Radacina serverului (recomandat \\\\NAS\\share, sau Z:\\)", cfg["radacina"])
     cfg["conturi"] = [c.strip() for c in _ask("Conturile Gmail, separate prin virgula", ", ".join(cfg["conturi"])).split(",")]
+    cfg["adrese_proprii"] = [a.strip() for a in _ask(
+        "Alte adrese ale cabinetului (nu identifica un client; la forward se cauta expeditorul original)",
+        ", ".join(a for a in cfg["adrese_proprii"] if a not in cfg["conturi"])).split(",") if a.strip()]
     cfg["excel_clienti"] = _ask("Calea catre Clienti_Contabilitate.xlsx (gol = fara)", cfg["excel_clienti"] or "")
     cfg["de_la"] = _ask("Descarca mesajele primite incepand cu (AAAA-LL-ZZ)", cfg["de_la"])
     cfg["raport"]["catre"] = _ask("Raportul zilnic si alertele merg la", cfg["raport"]["catre"])

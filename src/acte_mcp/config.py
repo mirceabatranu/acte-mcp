@@ -20,14 +20,9 @@ DEFAULTS: dict = {
     # unitatea Z: nu e conectata (de ex. in sarcina programata).
     "radacina": "Z:\\",
     # Casutele Gmail de descarcat; parola de aplicatie se salveaza cu `acte-mcp parola <email>`.
-    "conturi": ["bilanzaudit@gmail.com", "officebbaaudit@gmail.com"],
+    "conturi": [],
     # Adresele cabinetului: nu identifica niciodata un client (la forward se cauta expeditorul original).
-    "adrese_proprii": [
-        "bilanzaudit@gmail.com",
-        "officebbaaudit@gmail.com",
-        "office@bilanzaudit.ro",
-        "paul@bilanzaudit.ro",
-    ],
+    "adrese_proprii": [],
     # Excelul cu clientii (foaia "Clienti", antet pe randul 4). Gol = doar dupa numele folderelor.
     "excel_clienti": "",
     # Mesajele primite inainte de aceasta data nu se descarca.
@@ -61,7 +56,7 @@ DEFAULTS: dict = {
     ],
     "raport": {
         # Raportul zilnic si alertele se trimit de pe primul cont, catre aceasta adresa.
-        "catre": "office@bilanzaudit.ro",
+        "catre": "",
         # Ora de la care se trimite raportul pe ziua precedenta.
         "ora": 7,
         # Alerta de eroare se repeta cel mult o data la atatea minute.
