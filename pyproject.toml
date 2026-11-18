@@ -1,0 +1,29 @@
+[project]
+name = "acte-mcp"
+version = "0.1.0"
+description = "Descarca atasamentele din Gmail pe serverul local (Z:) si da acces lui Claude la actele clientilor"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "mcp>=1.10,<2",
+    "keyring>=25",
+    "openpyxl>=3.1",
+    "xlrd>=2.0",
+    "pypdf>=4.0",
+    "pypdfium2>=4.20",
+    "pillow>=10.0",
+]
+
+[project.scripts]
+acte-mcp = "acte_mcp.cli:main"
+
+# Varianta fara fereastra, pentru sarcina programata din Windows.
+[project.gui-scripts]
+acte-sync = "acte_mcp.cli:main_sync"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/acte_mcp"]
